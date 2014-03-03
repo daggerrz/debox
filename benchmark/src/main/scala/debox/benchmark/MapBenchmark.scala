@@ -22,6 +22,8 @@ class MapBenchmarks extends MyBenchmark {
   var scalaMap:mutable.Map[Int, Double] = null
   var javaMap:java.util.HashMap[Int, Double] = null
   var deboxMap:debox.Map[Int, Double] = null
+  var coltMap:cern.colt.map.OpenIntObjectHashMap = null
+  var troveMap:gnu.trove.map.hash.TIntObjectHashMap[Double] = null
 
   override protected def setUp() {
     val n = scala.math.pow(2, pow).toInt
@@ -33,12 +35,16 @@ class MapBenchmarks extends MyBenchmark {
     scalaMap = mutable.Map.empty[Int, Double]
     javaMap = new java.util.HashMap[Int, Double]()
     deboxMap = debox.Map.empty[Int, Double]
+    coltMap = new cern.colt.map.OpenIntObjectHashMap()
+    troveMap = new gnu.trove.map.hash.TIntObjectHashMap[Double]()
+
 
     var i = 0
     while (i < n) {
       scalaMap(keys(i)) = vals(i)
       javaMap.put(keys(i), vals(i))
       deboxMap(keys(i)) = vals(i)
+      coltMap.put(keys(i), vals(i))
       i += 1
     }
   }
@@ -47,17 +53,22 @@ class MapBenchmarks extends MyBenchmark {
   def timeBuildScalaMap(reps:Int) = run(reps)(buildScalaMap)
   def timeBuildJavaMap(reps:Int) = run(reps)(buildScalaMap)
   def timeBuildDeboxMap(reps:Int) = run(reps)(buildDeboxMap)
-  
+  def timeBuildColtMap(reps:Int) = run(reps)(buildColtMap)
+  def timeTroveMap(reps: Int) = run(reps)(buildTroveMap)
+
   // foreach benchmark
   def timeForeachScalaMap(reps:Int) = run(reps)(foreachScalaMap)
   def timeForeachJavaMap(reps:Int) = run(reps)(foreachJavaMap)
   def timeForeachDeboxMap(reps:Int) = run(reps)(foreachDeboxMap)
   //def timeForeachMacroDeboxMap(reps:Int) = run(reps)(foreachMacroDeboxMap)
-  
+//  def timeForeachTroveMap(reps:Int) = run(reps)(foreachTroveMap)
+
   // contains benchmark
   def timeContainsScalaMap(reps:Int) = run(reps)(containsScalaMap)
   def timeContainsJavaMap(reps:Int) = run(reps)(containsJavaMap)
   def timeContainsDeboxMap(reps:Int) = run(reps)(containsDeboxMap)
+  def timeContainsColtMap(reps:Int) = run(reps)(containsColtMap)
+  def timeContainsTroveMap(reps:Int) = run(reps)(containsTroveMap)
 
   def buildScalaMap:Int = {
     val m = mutable.Map.empty[Int, Double]
@@ -80,6 +91,22 @@ class MapBenchmarks extends MyBenchmark {
     var i = 0
     val len = keys.length
     while (i < len) { m(keys(i)) = vals(i); i += 1 }
+    m.size
+  }
+
+  def buildColtMap:Int = {
+    val m = new cern.colt.map.OpenIntObjectHashMap()
+    var i = 0
+    val len = keys.length
+    while (i < len) { m.put(keys(i), vals(i)); i += 1 }
+    m.size
+  }
+
+  def buildTroveMap:Int = {
+    val m = new gnu.trove.map.hash.TIntObjectHashMap[Double]()
+    var i = 0
+    val len = keys.length
+    while (i < len) { m.put(keys(i), vals(i)); i += 1 }
     m.size
   }
 
@@ -121,6 +148,7 @@ class MapBenchmarks extends MyBenchmark {
     deboxMap.foreach((k,v) => { ks -= 2 * k; vs -= v })
     (ks, vs)
   }
+
 
   // def foreachMacroDeboxMap = {
   //   import debox.Ext._
@@ -166,4 +194,26 @@ class MapBenchmarks extends MyBenchmark {
     while (i < len) { if (deboxMap.contains(keys2(i))) t += 1; i += 1 }
     t
   }
+
+  def containsColtMap:Long = {
+    var i = 0
+    var len = keys.length
+    var t = 0
+    while (i < len) { if (coltMap.containsKey(keys(i))) t += 1; i += 1 }
+    i = 0
+    len = keys2.length
+    while (i < len) { if (coltMap.containsKey(keys2(i))) t += 1; i += 1 }
+    t
+  }
+
+    def containsTroveMap:Long = {
+      var i = 0
+      var len = keys.length
+      var t = 0
+      while (i < len) { if (troveMap.containsKey(keys(i))) t += 1; i += 1 }
+      i = 0
+      len = keys2.length
+      while (i < len) { if (troveMap.containsKey(keys2(i))) t += 1; i += 1 }
+      t
+    }
 }
